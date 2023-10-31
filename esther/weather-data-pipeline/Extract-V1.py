@@ -6,7 +6,7 @@ import json
 import requests
 from datetime import datetime
 import pytz
-from google.cloud import storage
+from azure.storage.filedatalake import DataLakeStoreClient
 
 # config variable class
 class Config:
