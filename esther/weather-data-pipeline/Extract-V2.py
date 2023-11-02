@@ -3,16 +3,13 @@ import requests
 import json
 import pytz
 from datetime import datetime
-from azure.storage.filedatlake import DataLakeStoreClient
+from azure.storage.blob import BlobServiceClient
 
-# Azure Data Lake Storage Gen2 configuration
-storage_account_name = 'fermat01'
-storage_account_key = ''
-file_system_name = ''
-directory_name = ''
+# Azure Blob Storage configuration
+container_url = 'https://fermat01.blob.core.windows.net/weatherdata'
+sas_token = 'sp=r&st=2023-11-01T11:36:11Z&se=2023-11-01T19:36:11Z&spr=https&sv=2022-11-02&sr=c&sig=RB7SjDMB09sYaS7B0oV%2FTcLPurCXzMejlS0S9qgoWsY%3D'
 
-# Azure Synapse Analytics connection
-synapse_connection_string =''
+
 
 # config varibles class
 class Config:
@@ -48,19 +45,22 @@ def get_data(lat, lon):
     
     
 
-def upload_to_storage(file_name, data):
-    data_lake_client = DataLakeStoreClient(account_url=f"")
+def upload_to_blob_storage(data, container_url, sas_token, file_name):
+    blob_service_client = BlobServiceClient(container_url, sas_token)
     
     # Convert result dictionary to JSON
     json_data = json.dumps(data)
     
-    # Specify the target path in Data Lake Storage Gen2
-    destination_path = ''
+    # Specify the blob name within the container
+    blob_name = f"{weatherdata}.json"
     
-    # Write the data to a JSON file in Data Lake Storage Gen2
-    with data_lake_client.get_file_client(file_system=file_system_name, directory=directory_name, file=file_name) as file_client:
-        with file_client.create_file() as file:
-            file.write(json_data)
+    # Get a reference to the blob
+    blob_client = blob_service_client.get_blob_client(container=container_url, blob=blob_name)
+    
+    # Upload the JSON data to the blob
+    blob_client.upload_blob(json_data)
+    
+    
             
 def main(event, context):
     # Get current date and time
